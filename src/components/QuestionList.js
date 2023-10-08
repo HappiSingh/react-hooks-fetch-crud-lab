@@ -1,11 +1,52 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import QuestionItem from "./QuestionItem";
 
-function QuestionList() {
+function QuestionList({ questions, setQuestions }) {
+  useEffect(() => {
+    fetch("http://localhost:4000/questions")
+      .then((res) => res.json())
+      .then((questions) => setQuestions(questions));
+  }, []);
+
+  const handleUpdatedCorrectIndex = (newIndex) => {
+    const updatedQuestions = questions.map((question) => {
+      if (question.id === newIndex.id) {
+        return newIndex;
+      } else {
+        return question;
+      }
+    });
+    setQuestions(updatedQuestions);
+  };
+
+  const handleUpdateAnswer = (id, e) => {
+    console.log(id, e.target.value);
+    fetch(`http://localhost:4000/questions/${id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ correctIndex: e.target.value }),
+    })
+      .then((res) => res.json())
+      .then((newIndex) => handleUpdatedCorrectIndex(newIndex));
+  };
+
+  const displayQuestions = questions.map((question) => (
+    <QuestionItem
+      key={question.id}
+      question={question}
+      questions={questions}
+      setQuestions={setQuestions}
+    />
+  ));
   return (
-    <section>
-      <h1>Quiz Questions</h1>
-      <ul>{/* display QuestionItem components here after fetching */}</ul>
-    </section>
+    <div>
+      <section>
+        <h1>Quiz Questions</h1>
+        <ul>{displayQuestions}</ul>
+      </section>
+    </div>
   );
 }
 
